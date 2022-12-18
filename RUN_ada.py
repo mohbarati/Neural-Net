@@ -1,3 +1,12 @@
+"""
+    Run this code for basic Adaline classifier
+    on Iris Data (2 columns). It uses adaline 
+    gradient descent (adasgd). You can change
+    the activation function to any of these:
+    linear, binstep (sinary step), sigmoid,
+    tanh, ReLU, softplus, silu (x*sigmoid),
+    and L_ReLU (leaky ReLU).
+"""
 import numpy as np
 import pandas as pd
 from adasgd import NN

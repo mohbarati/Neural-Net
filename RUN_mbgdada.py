@@ -1,3 +1,14 @@
+"""
+    Run this code for mini-batch Adaline classifier
+    on Iris Data (2 columns). It uses mini batch 
+    adaline gradient descent (mb_ada). You can 
+    change the activation function to any of these:
+    linear, binstep (sinary step), sigmoid,
+    tanh, ReLU, softplus, silu (x*sigmoid),
+    and L_ReLU (leaky ReLU). Also, batch size 
+    can be changed. Change learning rate if required.
+"""
+
 import numpy as np
 import pandas as pd
 from mb_ada import NN
