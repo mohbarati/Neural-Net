@@ -15,7 +15,7 @@ class NN:
 
     """
 
-    def __init__(self, eta, epoch, active_method, rand_state=1) -> None:
+    def __init__(self, eta, epoch, active_method, batch_size, rand_state=1) -> None:
         """Initialize the object
 
         Args:
@@ -28,6 +28,7 @@ class NN:
         self.rand_state = rand_state
         self.epoch = epoch
         self.active_method = active_method
+        self.batch_size = batch_size
 
     def activation(self, x, param):
         """Computes the activation"""
@@ -51,7 +52,7 @@ class NN:
             case _:
                 raise Exception("invalid activation function")
 
-    def fit(self, x, y, norm=False, plot=False):
+    def fit(self, x, y, norm=False):
         """Fit training data.
         Args:
 
@@ -69,27 +70,36 @@ class NN:
         self.w = fixed_prob.normal(loc=0, scale=0.1, size=x.shape[1])
         self.b = 1.0
         self.costs = []
-        if plot:
-            line1, fig = self.plotting()
+        batch_number = len(y) // self.batch_size
+
         for _ in range(self.epoch):
-            shuffled_index = np.random.permutation(x.index)
-            x = x.reindex(shuffled_index)
-            y = y.reindex(shuffled_index)
-            error = y - self.predict(x)
-            self.w += self.eta * pd.Series(np.matmul(x.T, error))
-            self.b += self.eta * error.sum()
-            cost = (error**2).sum() / 2.0
-            self.costs.append(cost)
-            if plot:
-                line1.set_xdata(range(len(self.w)))
-                line1.set_ydata(self.w)
-                fig.canvas.draw()
-                fig.canvas.flush_events()
-                plt.pause(0.1)
-        if plot:
-            plt.ioff()
-            plt.title("You can Close This Window", fontsize=20)
-            plt.show()
+            x, y = self.shuff_adjust(x, y)
+            cost = []
+            for i in range(batch_number):
+                x_part = x.iloc[i * self.batch_size : (i + 1) * self.batch_size]
+                y_part = y.iloc[i * self.batch_size : (i + 1) * self.batch_size]
+                cost.append(self.weights_update(x_part, y_part))
+            self.costs.append(np.sum(cost) / batch_number)
+
+    def shuff_adjust(self, x, y):
+        """shuffle dataset and assign to mini batches.
+        if dataset size is not a multiple of mini batches, replicate"""
+        shuffled_index = np.random.permutation(x.index)
+        x = x.reindex(shuffled_index)
+        y = y.reindex(shuffled_index)
+        adjust = self.batch_size - len(y) % self.batch_size
+        if adjust != 0:
+            y = pd.concat([y, y.iloc[:adjust]])
+            x = pd.concat([x, x.iloc[:adjust]])
+            x, y = x.reset_index(drop=True), y.reset_index(drop=True)
+        return x, y
+
+    def weights_update(self, x, y):
+        error = y - self.predict(x)
+        self.w += self.eta * pd.Series(np.matmul(x.T, error))
+        self.b += self.eta * error.sum()
+        cost_ = (error**2).sum() / (2 * self.batch_size)
+        return cost_
 
     def net_input(self, x):
         """Calculate net input"""
@@ -165,7 +175,7 @@ class NN:
         prediction = self.bin_classify_helper(prediction)
         d = {
             "Test_Targets": target,
-            "Predict_by_AdalineSGD": prediction,
+            "Predict by mini-batch AdalineSGD": prediction,
         }
         return pd.DataFrame(data=d)
 
@@ -177,8 +187,8 @@ class NN:
         plt.grid(True)
         plt.xticks(range(1, self.epoch + 1))
         plt.title("Costs Versus Epochs", fontsize=20)
-        # figManager = plt.get_current_fig_manager()
-        # figManager.window.state("zoomed")
+        figManager = plt.get_current_fig_manager()
+        figManager.window.state("zoomed")
         plt.show()
 
     def plot_active_func(self):
