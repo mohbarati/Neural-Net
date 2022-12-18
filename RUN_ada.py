@@ -42,4 +42,4 @@ print("activation method: ", ppn.active_method)
 print(ppn.target_predict_table(prediction, y_test))
 # plot of costs
 ppn.plot_costs()
-# ppn.plot_active_func()
+ppn.plot_active_func()
