@@ -19,7 +19,7 @@ shuffled_index = fixed_prob.permutation(df.index)
 # shuffling the dataset before dividing the test/train portions
 df = df.reindex(shuffled_index)
 # convert categorical variables into numerical
-df[df.columns[4]] = np.where(df.iloc[0:100, 4] == "Iris-setosa", 1, -1)
+df[df.columns[4]] = np.where(df.iloc[0:100, 4] == "Iris-setosa", 1, 0)
 # extract train info
 y = df.iloc[0:80, 4]
 x = df.iloc[0:80, :4]
@@ -30,7 +30,7 @@ norm = True  # in case Z-score Normalization is needed, False otherwise
 if norm:
     x_test = (x_test - np.mean(x, axis=0)) / np.std(x)
 # Initialize ADAptive LInear NEuron classifier
-ppn = NN(eta=0.001, epoch=15, active_method="linear")
+ppn = NN(eta=0.001, epoch=30, active_method="L_ReLU")
 # train the classifier
 ppn.fit(x, y, norm=norm, plot=True)  # plot: animation plot of weight updates
 

@@ -35,7 +35,7 @@ class NN:
             case "linear":
                 return x
             case "binstep":
-                return np.where(x >= 0, 1, -1)
+                return np.where(x >= 0.5, 1, 0)
             case "sigmoid":
                 return 1 / (1 + np.exp(-x))
             case "tanh":
@@ -95,7 +95,7 @@ class NN:
         """Calculate net input"""
         return np.dot(x, self.w) + self.b
 
-    def predict(self, x, decimal_number=1):
+    def predict(self, x, decimal_number=2):
         """Return class label (float)"""
         return np.around(
             self.activation(self.net_input(x), self.active_method), decimal_number
@@ -126,12 +126,6 @@ class NN:
         ax.set_ylim(-2, 2)
         return line1, fig
 
-    def bin_classify_helper(self, predict):
-        if self.active_method in ["sigmoid", "ReLU", "softplus"]:
-            return np.where(np.around(predict) >= 0.5, 1, -1)
-        else:
-            return self.activation(predict, "binstep")
-
     def accuracy(self, prediction, target):
         """percentage accuracy
 
@@ -143,7 +137,7 @@ class NN:
             str: Returns a String with percentage accuracy
         """
         # dividing the prediction into two classes >0 & <0
-        binary_adjusted_prediction = self.bin_classify_helper(prediction)
+        binary_adjusted_prediction = self.activation(prediction, "binstep")
         accuracy_perc = (
             100
             - (len(target) - sum(binary_adjusted_prediction == target))
@@ -162,7 +156,7 @@ class NN:
         Returns:
             Pandas Dataframe: Table with two columns
         """
-        prediction = self.bin_classify_helper(prediction)
+        prediction = self.activation(prediction, "binstep")
         d = {
             "Test_Targets": target,
             "Predict_by_AdalineSGD": prediction,
@@ -177,8 +171,8 @@ class NN:
         plt.grid(True)
         plt.xticks(range(1, self.epoch + 1))
         plt.title("Costs Versus Epochs", fontsize=20)
-        # figManager = plt.get_current_fig_manager()
-        # figManager.window.state("zoomed")
+        figManager = plt.get_current_fig_manager()
+        figManager.window.state("zoomed")
         plt.show()
 
     def plot_active_func(self):
